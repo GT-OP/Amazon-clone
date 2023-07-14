@@ -1,17 +1,17 @@
-const express=require("express");
+const express = require("express");
 const Products = require("../models/productsSchema");
-const router=new express.Router();
-const USER=require("../models/userSchema");
-const bcrypt=require("bcryptjs");
+const router = new express.Router();
+const USER = require("../models/userSchema");
+const bcrypt = require("bcryptjs");
 //importing middleware
 const authenticate = require("../middleware/authenticate");
 
 //get products data
-    //we will use postman for api testing
+//we will use postman for api testing
 router.get("/getproducts", async (req, res) => {
     try {
         const producstdata = await Products.find();
-        
+
         res.status(201).json(producstdata);
     } catch (error) {
         console.log("errorin-router.js=" + error.message);
@@ -23,13 +23,13 @@ router.get("/getproductsone/:id", async (req, res) => {
 
     try {
         //accesing data from given API path
-        const { id }= req.params;
+        const { id } = req.params;
         //console.log(id)
-          
+
 
         //finding data with given id in products collection
         const individual = await Products.findOne({ id: id });
-            //console.log(individual);\
+        //console.log(individual);\
 
         res.status(201).json(individual);
 
@@ -42,43 +42,43 @@ router.get("/getproductsone/:id", async (req, res) => {
 
 //FOR '/register' in frontend or to save old or new user's data 
 router.post("/register", async (req, res) => {
-        // console.log(req.body);
-       
-       const { fname, email, mobile, password, cpassword } = req.body;
+    // console.log(req.body);
 
-       if (!fname || !email || !mobile || !password || !cpassword) {
-           res.status(422).json({ error: "fill the all details" });
-                       
-       };
-   
-       try {
-   
-           const preuser = await USER.findOne({ email: email });
-   
-           if (preuser) {
-               res.status(422).json({ error: "This email is already exist" });
-           } else if (password !== cpassword) {
-               res.status(422).json({ error: "password are not matching" });;
-           } else {
-   
-               const finaluser = new USER({
-                   fname, email, mobile, password, cpassword
-               });
-   
-               //bcryptjs hashing will be applied before saving
+    const { fname, email, mobile, password, cpassword } = req.body;
 
-               //saving data in mongodb use save() method 
-               const storedata = await finaluser.save();
-                        //console.log("data added succesfully");
+    if (!fname || !email || !mobile || !password || !cpassword) {
+        res.status(422).json({ error: "fill the all details" });
 
-               //below line response or shows stored data in terminal
-               res.status(201).json(storedata);
-           }
-   
-       } catch (error) {
-                        //console.log("error the bhai catch ma for registratoin time" + error.message);
-           res.status(422).send(error);
-       }
+    };
+
+    try {
+
+        const preuser = await USER.findOne({ email: email });
+
+        if (preuser) {
+            res.status(422).json({ error: "This email is already exist" });
+        } else if (password !== cpassword) {
+            res.status(422).json({ error: "password are not matching" });;
+        } else {
+
+            const finaluser = new USER({
+                fname, email, mobile, password, cpassword
+            });
+
+            //bcryptjs hashing will be applied before saving
+
+            //saving data in mongodb use save() method 
+            const storedata = await finaluser.save();
+            //console.log("data added succesfully");
+
+            //below line response or shows stored data in terminal
+            res.status(201).json(storedata);
+        }
+
+    } catch (error) {
+        //console.log("error the bhai catch ma for registratoin time" + error.message);
+        res.status(422).send(error);
+    }
 
 });
 
@@ -92,43 +92,41 @@ router.post("/login", async (req, res) => {
     if (!email || !password) {
         res.status(400).json({ error: "fill the details" });
     }
-    
+
     try {
 
         const userlogin = await USER.findOne({ email: email });
-                //console.log(userlogin.password);
+        //console.log(userlogin.password);
 
-        if (userlogin) 
-             {
+        if (userlogin) {
             const isMatch = await bcrypt.compare(password, userlogin.password);
-                //console.log(isMatch);
+            //console.log(isMatch);
 
-            //ACCESSING TOKEN
-            const token = await userlogin.generatAuthtoken();
-                //console.log("token generated succesfully - "+token);
-            
 
-            //CODE TO SHOW COOKIE GENRATED AT FRONT-END
-            //"Amazonweb"- is the cookie name ,expires signifies from current after how many mili sec cookie will get expire 
-            res.cookie("Amazonweb", token, {
-                expires: new Date(Date.now() + 900000),
-                httpOnly: true
-            });
 
 
             if (!isMatch) {
                 res.status(400).json({ error: "invalid crediential pass" });
             } else {
-                
+                //ACCESSING TOKEN
+                const token = await userlogin.generatAuthtoken();
+                //console.log("token generated succesfully - "+token);
+
+
+                //CODE TO SHOW COOKIE GENRATED AT FRONT-END
+                //"Amazonweb"- is the cookie name ,expires signifies from current after how many mili sec cookie will get expire 
+                res.cookie("Amazonweb", token, {
+                    expires: new Date(Date.now() + 900000),
+                    httpOnly: true
+                });
                 res.status(201).json(userlogin);
             }
-        
-            }
-        else
-            {
-            res.status(400).json({ error: "invalid crediential pass" });   
-            }
-    } 
+
+        }
+        else {
+            res.status(400).json({ error: "invalid crediential pass" });
+        }
+    }
     catch (error) {
         res.status(400).json({ error: "invalid crediential pass hmm.." });
     }
@@ -158,10 +156,10 @@ router.post("/addcart/:id", authenticate, async (req, res) => {
             console.log(cartData + " thse save wait kr");
             console.log(UserContact + "userjode save");
             res.status(201).json(UserContact);
-            }
-        } catch (error) {
-                res.status(401).json({error:"invalid user"});
         }
+    } catch (error) {
+        res.status(401).json({ error: "invalid user" });
+    }
 
 });
 
@@ -183,7 +181,7 @@ router.get("/cartdetails", authenticate, async (req, res) => {
 router.get("/validuser", authenticate, async (req, res) => {
     try {
         const validuserone = await USER.findOne({ _id: req.userID });
-            //console.log(validuserone + "user hain home k header main pr");
+        //console.log(validuserone + "user hain home k header main pr");
         res.status(201).json(validuserone);
     } catch (error) {
         console.log(error + "error for valid user");
@@ -193,9 +191,9 @@ router.get("/validuser", authenticate, async (req, res) => {
 
 
 // remove iteam from the cart
-    //BELOW IS THE FUNCTION TO DELETE THE RECORD OUT OF CART
-    //WHEN WE WILLL CLICK ON DELETE BUTTON THAT ITEM'S ID NUMBER WILL BE SEND TO BACKEND
-    //THEN OUT OF ALLTHAT ID'S WHICH ARE NOT EQUAL TO DELETING ITEM WILL GET RETURNED 
+//BELOW IS THE FUNCTION TO DELETE THE RECORD OUT OF CART
+//WHEN WE WILLL CLICK ON DELETE BUTTON THAT ITEM'S ID NUMBER WILL BE SEND TO BACKEND
+//THEN OUT OF ALLTHAT ID'S WHICH ARE NOT EQUAL TO DELETING ITEM WILL GET RETURNED 
 
 router.delete("/remove/:id", authenticate, async (req, res) => {
     try {
@@ -238,4 +236,4 @@ router.get("/logout", authenticate, async (req, res) => {
 
 
 
-module.exports=router;
+module.exports = router;
