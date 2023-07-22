@@ -28,6 +28,11 @@ app.use(
 );
 app.use(router);
 
+// for deployment
+if(process.env.NODE_ENV === "production"){
+    app.use(express.static("client/build"))
+}
+
 
 
 
